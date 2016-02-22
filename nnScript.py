@@ -64,6 +64,14 @@ def preprocess():
     
     
     #Your code here
+
+    #TODO
+    #Create train matrix & train label(train0-train9) from mnist_all.mat 
+    #Create test matrix &test label (test0-test9) from mnist_all.mat 
+    #Normalize
+    #Remove features which have the same values for all training examples 
+    #Random permutations to split data into training and validation data
+
     train_data = np.array([])
     train_label = np.array([])
     validation_data = np.array([])
@@ -158,6 +166,13 @@ def nnPredict(w1,w2,data):
     
     labels = np.array([])
     #Your code here
+
+    #TODO
+    #Add bias to data
+    #Compute z(output of hidden units) using w1
+    #Add bias for hidden layer
+    #Compute o(outout of output units) using w2
+    #Find max in o
     
     return labels
     
