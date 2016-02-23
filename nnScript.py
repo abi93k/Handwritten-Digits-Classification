@@ -58,9 +58,6 @@ def preprocess():
     
     mat = loadmat('mnist_all.mat') #loads the MAT object as a Dictionary
 
-    #TODO
-    #Random permutations to split data into training and validation data
-
     #Create training and test matrices
     train_data = np.zeros([0,784])
     train_label = np.zeros([0,1])
@@ -90,7 +87,15 @@ def preprocess():
     train_data = np.delete(train_data,indices_to_delete,axis=1)			
     test_data = np.delete(test_data,indices_to_delete,axis=1)         
    
+    #Random permutations to split data into training and validation data
+    indices = np.random.permutation(train_data.shape[0])
+
+    training_idx, validation_idx = indices[:50000], indices[50000:]
+    train_data, validation_data = train_data[training_idx,:], train_data[validation_idx,:]
+    train_label, validation_label = train_label[training_idx,], train_label[validation_idx,]
+
     return train_data, train_label, validation_data, validation_label, test_data, test_label
+
     
     
     
