@@ -143,20 +143,52 @@ def nnObjFunction(params, *args):
     w1 = params[0:n_hidden * (n_input + 1)].reshape( (n_hidden, (n_input + 1)))
     w2 = params[(n_hidden * (n_input + 1)):].reshape((n_class, (n_hidden + 1)))
     obj_val = 0  
+
+    #one-of-k encoding 
+    training_label = np.array(training_label)
+    number_of_samples = training_label.shape[0];
+    index=np.arange(number_of_samples,dtype="int")
+
+    one_of_k_label = np.zeros((number_of_samples,10))
+    one_of_k_label[index,training_label.astype(int)]=1
+    training_label = one_of_k_label
     
-    #Your code here
-    #
-    #
-    #
-    #
-    #
-    
-    
-    
+    #Adding bias for input layer x
+    number_of_samples=training_data.shape[0]
+    training_data=np.column_stack((training_data,np.ones(number_of_samples)))
+
+    #Compute intermediate layer
+    #z=w1.T^x 
+    z=sigmoid(np.dot(w1.T,training_data))
+
+    #Adding bias for intermediate layer z
+    number_of_samples=z.shape[0]
+    z=np.column_stack((z,np.ones(number_of_samples)))
+
+    #Compute output layer
+    #o=w2.T^z
+    o=sigmoid(np.dot(w2.T,z)) 
+
+    error_output_layer = (training_label-o) * (1-o) * o
+
+    grad_w2 = np.dot(error_output_layer.T,z)
+    grad_w1 = np.dot(( -1 * (1-z) * z *  ( np.dot(error_output_layer,w2) ) ).T,training_data) 
+
     #Make sure you reshape the gradient matrices to a 1D array. for instance if your gradient matrices are grad_w1 and grad_w2
     #you would use code similar to the one below to create a flat array
     #obj_grad = np.concatenate((grad_w1.flatten(), grad_w2.flatten()),0)
     obj_grad = np.array([])
+    obj_grad = np.concatenate((grad_w1.flatten(), grad_w2.flatten()),0)
+    obj_grad = obj_grad/number_of_samples
+
+    #obj_val
+    obj_val = np.sum( ( (training_label-o) * (training_label-o) )/2 ) / number_of_samples
+    
+    #regularization
+
+    obj_val_reg = (lambdaval/(2*number_of_samples))* ( np.sum(np.square(w1)) + np.sum(np.square(w2)) )
+
+    obj_val = obj_val_part1 + obj_val_reg
     
     return (obj_val,obj_grad)
 
@@ -181,25 +213,25 @@ def nnPredict(w1,w2,data):
     % label: a column vector of predicted labels""" 
 
     #Adding bias for input layer x
-    number_of_rows=data.shape[0]
-    data=np.column_stack((data,np.ones(number_of_rows)))
+    number_of_samples=data.shape[0]
+    data=np.column_stack((data,np.ones(number_of_samples)))
 
     #Compute intermediate layer
     #z=w1.T^x 
     z=sigmoid(np.dot(w1.T,data))
 
     #Adding bias for intermediate layer z
-    number_of_rows=z.shape[0]
-    z=np.column_stack((z,np.ones(number_of_rows)))
+    number_of_samples=z.shape[0]
+    z=np.column_stack((z,np.ones(number_of_samples)))
 
     #Compute output layer
-    #y=w2.T^z
-    y=sigmoid(np.dot(w2.T,z))
+    #o=w2.T^z
+    o=sigmoid(np.dot(w2.T,z))
 
     #The value of lth unit in the output layer represents the probability of a certain hand-written image belongs to digit l.
     #Find the unit with max probability 
     
-    labels = np.argmax(y,axis=1)
+    labels = np.argmax(o,axis=1)
 
     return labels
     
