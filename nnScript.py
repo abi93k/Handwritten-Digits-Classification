@@ -29,8 +29,6 @@ def sigmoid(z):
     
     return  1.0 / (1.0 + np.exp(-1.0 * np.array(z)));
     
-    
-
 def preprocess():
     """ Input:
      Although this function doesn't have any input, you are required to load
@@ -59,6 +57,24 @@ def preprocess():
      - feature selection"""
     
     mat = loadmat('mnist_all.mat') #loads the MAT object as a Dictionary
+    train_data = np.zeros((0,784))
+    train_data = np.concatenate((train_data,mat.get("train0")),0)
+
+    for i in range(10):
+        total += mat.get("train"+str(i)).shape[0]
+        print mat.get("train"+str(i)).shape
+
+    print "total " + str(total)
+
+
+    print "test"
+    total = 0 
+    for i in range(10):
+        total += mat.get("test"+str(i)).shape[0]
+        print mat.get("test"+str(i)).shape
+
+    print "total " + str(total)
+    exit()
     
     #Pick a reasonable size for validation data
     
@@ -163,17 +179,28 @@ def nnPredict(w1,w2,data):
        
     % Output: 
     % label: a column vector of predicted labels""" 
-    
-    labels = np.array([])
-    #Your code here
 
-    #TODO
-    #Add bias to data
-    #Compute z(output of hidden units) using w1
-    #Add bias for hidden layer
-    #Compute o(outout of output units) using w2
-    #Find max in o
+    #Adding bias for input layer x
+    number_of_rows=data.shape[0]
+    data=np.column_stack((data,np.ones(number_of_rows)))
+
+    #Compute intermediate layer
+    #z=w1.T^x 
+    z=sigmoid(np.dot(w1.T,data))
+
+    #Adding bias for intermediate layer z
+    number_of_rows=z.shape[0]
+    z=np.column_stack((z,np.ones(number_of_rows)))
+
+    #Compute output layer
+    #y=w2.T^z
+    y=sigmoid(np.dot(w2.T,z))
+
+    #The value of lth unit in the output layer represents the probability of a certain hand-written image belongs to digit l.
+    #Find the unit with max probability 
     
+    labels = np.argmax(y,axis=1)
+
     return labels
     
 
