@@ -160,7 +160,7 @@ def nnObjFunction(params, *args):
 
     # Compute intermediate layer
     # z=w1.T^x
-    z = sigmoid(np.dot(w1.T, training_data))
+    z = sigmoid(np.dot(training_data, w1.T))
 
     # Adding bias for intermediate layer z
     number_of_samples = z.shape[0]
@@ -168,7 +168,7 @@ def nnObjFunction(params, *args):
 
     # Compute output layer
     # o=w2.T^z
-    o = sigmoid(np.dot(w2.T, z))
+    o = sigmoid(np.dot(z, w2.T))
 
     error_output_layer = (training_label - o) * (1 - o) * o
 
@@ -220,7 +220,7 @@ def nnPredict(w1, w2, data):
 
     # Compute intermediate layer
     # z=w1.T^x
-    z = sigmoid(np.dot(w1.T, data))
+    z = sigmoid(np.dot(data, w1.T))
 
     # Adding bias for intermediate layer z
     number_of_samples = z.shape[0]
@@ -228,12 +228,13 @@ def nnPredict(w1, w2, data):
 
     # Compute output layer
     # o=w2.T^z
-    o = sigmoid(np.dot(w2.T, z))
+    o = sigmoid(np.dot(z, w2.T))
 
     # The value of lth unit in the output layer represents the probability of a certain hand-written image belongs to digit l.
     # Find the unit with max probability
 
     labels = np.argmax(o, axis=1)
+
 
     return labels
 
