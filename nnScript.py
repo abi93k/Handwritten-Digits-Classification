@@ -57,37 +57,11 @@ def preprocess():
      - feature selection"""
     
     mat = loadmat('mnist_all.mat') #loads the MAT object as a Dictionary
-    train_data = np.zeros((0,784))
-    train_data = np.concatenate((train_data,mat.get("train0")),0)
-
-    for i in range(10):
-        total += mat.get("train"+str(i)).shape[0]
-        print mat.get("train"+str(i)).shape
-
-    print "total " + str(total)
-
-
-    print "test"
-    total = 0 
-    for i in range(10):
-        total += mat.get("test"+str(i)).shape[0]
-        print mat.get("test"+str(i)).shape
-
-    print "total " + str(total)
-    exit()
-    
-    #Pick a reasonable size for validation data
-    
-    
-    #Your code here
 
     #TODO
-    #Create train matrix & train label(train0-train9) from mnist_all.mat 
-    #Create test matrix &test label (test0-test9) from mnist_all.mat 
-    #Normalize
-    #Remove features which have the same values for all training examples 
     #Random permutations to split data into training and validation data
 
+    #Create training and test matrices
     train_data = np.zeros([0,784])
     train_label = np.zeros([0,1])
     validation_data = np.array([])
@@ -95,33 +69,27 @@ def preprocess():
     test_data = np.zeros([0,784])
     test_label = np.zeros([0,1])
 
-    #temp_test_data=np.zeros([0,784])
-    #temp_train_data=np.zeros([0,784])
-    
-    	
+    for i in range(10):
+        train_chunk=mat.get('train'+str(i))
+    	test_chunk=mat.get('test'+str(i))
 
-    for i in range(0,10):
-    	temp_test_data=mat.get('test'+str(i))
-    	temp_train_data=mat.get('train'+str(i))
-    	train_data=np.concatenate((train_data,temp_train_data))
-    	test_data=np.concatenate((test_data,temp_test_data))
-    	temp_train_label=np.zeros([temp_train_data.shape[0],1])
-    	temp_train_label.fill(i)
-    	temp_test_label=np.zeros([temp_test_data.shape[0],1])
-    	temp_test_label.fill(i);
-    	train_label=np.concatenate((train_label,temp_train_label))
-    	test_label=np.concatenate((test_label,temp_test_label))
+    	train_data=np.concatenate((train_data,train_chunk))
+    	test_data=np.concatenate((test_data,test_chunk))
 
-    train_data/=255
-    test_data/=255
-    
-    indices=np.all(train_data==train_data[0,:],axis=0)
-    indices=np.nonzero(indices)
-    np.delete(train_data,indices,axis=1)			
+        train_label=np.concatenate((train_label,np.full((train_chunk.shape[0], 1),i, dtype=np.int)))
+    	test_label=np.concatenate((test_label,np.full((test_chunk.shape[0], 1),i, dtype=np.int)))
 
-    print (indices)
-    print (test_label.shape)
-    print (test_data.shape)
+    #Normalize
+    train_data = np.double(train_data)/255.0
+    test_data = np.double(train_data)/255.0
+
+    #Feature selection
+    #Remove features which have the same values for all training examples 
+    is_feature_useless=np.all(train_data == train_data[0,:], axis = 0)
+    indices_to_delete=np.nonzero(is_feature_useless)
+    train_data = np.delete(train_data,indices_to_delete,axis=1)			
+    test_data = np.delete(test_data,indices_to_delete,axis=1)         
+   
     return train_data, train_label, validation_data, validation_label, test_data, test_label
     
     
