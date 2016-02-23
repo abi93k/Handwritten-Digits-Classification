@@ -79,7 +79,7 @@ def preprocess():
 
     # Normalize
     train_data = np.double(train_data) / 255.0
-    test_data = np.double(train_data) / 255.0
+    test_data = np.double(test_data) / 255.0
 
     # Feature selection
     # Remove features which have the same values for all training examples
