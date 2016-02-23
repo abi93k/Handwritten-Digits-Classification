@@ -88,13 +88,40 @@ def preprocess():
     #Remove features which have the same values for all training examples 
     #Random permutations to split data into training and validation data
 
-    train_data = np.array([])
-    train_label = np.array([])
+    train_data = np.zeros([0,784])
+    train_label = np.zeros([0,1])
     validation_data = np.array([])
     validation_label = np.array([])
-    test_data = np.array([])
-    test_label = np.array([])
+    test_data = np.zeros([0,784])
+    test_label = np.zeros([0,1])
+
+    #temp_test_data=np.zeros([0,784])
+    #temp_train_data=np.zeros([0,784])
     
+    	
+
+    for i in range(0,10):
+    	temp_test_data=mat.get('test'+str(i))
+    	temp_train_data=mat.get('train'+str(i))
+    	train_data=np.concatenate((train_data,temp_train_data))
+    	test_data=np.concatenate((test_data,temp_test_data))
+    	temp_train_label=np.zeros([temp_train_data.shape[0],1])
+    	temp_train_label.fill(i)
+    	temp_test_label=np.zeros([temp_test_data.shape[0],1])
+    	temp_test_label.fill(i);
+    	train_label=np.concatenate((train_label,temp_train_label))
+    	test_label=np.concatenate((test_label,temp_test_label))
+
+    train_data/=255
+    test_data/=255
+    
+    indices=np.all(train_data==train_data[0,:],axis=0)
+    indices=np.nonzero(indices)
+    np.delete(train_data,indices,axis=1)			
+
+    print (indices)
+    print (test_label.shape)
+    print (test_data.shape)
     return train_data, train_label, validation_data, validation_label, test_data, test_label
     
     
