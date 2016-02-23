@@ -192,7 +192,7 @@ def nnObjFunction(params, *args):
     obj_val_reg = (lambdaval / (2 * number_of_samples)) * \
         (np.sum(np.square(w1)) + np.sum(np.square(w2)))
 
-    obj_val = obj_val_part1 + obj_val_reg
+    obj_val = obj_val + obj_val_reg
 
     return (obj_val, obj_grad)
 
