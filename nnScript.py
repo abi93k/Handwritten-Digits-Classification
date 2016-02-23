@@ -242,12 +242,12 @@ def nnPredict(w1, w2, data):
 """**************Neural Network Script Starts here********************************"""
 
 train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
-print train_data.shape
-print train_label.shape
-print validation_data.shape
-print validation_label.shape
-print test_data.shape
-print test_label.shape
+print (train_data.shape)
+print (train_label.shape)
+print (validation_data.shape)
+print (validation_label.shape)
+print (test_data.shape)
+print (test_label.shape)
 
 
 
