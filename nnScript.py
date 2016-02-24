@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.io import loadmat
 from math import sqrt
-
+import time
 
 def initializeWeights(n_in, n_out):
     """
@@ -59,11 +59,11 @@ def preprocess():
 
     # Create training and test matrices
     train_data = np.zeros([0, 784])
-    train_label = np.zeros([0, 1])
+    train_label = []
     validation_data = np.array([])
     validation_label = np.array([])
     test_data = np.zeros([0, 784])
-    test_label = np.zeros([0, 1])
+    test_label = []
 
     for i in range(10):
         train_chunk = mat.get('train' + str(i))
@@ -72,10 +72,13 @@ def preprocess():
         train_data = np.concatenate((train_data, train_chunk))
         test_data = np.concatenate((test_data, test_chunk))
 
-        train_label = np.concatenate(
-            (train_label, np.full((train_chunk.shape[0], 1), i, dtype=np.int)))
-        test_label = np.concatenate(
-            (test_label, np.full((test_chunk.shape[0], 1), i, dtype=np.int)))
+        #train_label = np.concatenate(
+        #    (train_label, np.full((train_chunk.shape[0], 1), i, dtype=np.int)))
+        train_label=np.concatenate((train_label,np.ones(train_chunk.shape[0])*i),0);
+        #test_label = np.concatenate(
+        #     (test_label, np.full((test_chunk.shape[0], 1), i, dtype=np.int)))
+        test_label = np.concatenate((test_label,np.ones(test_chunk.shape[0])*i),0)
+
 
     # Normalize
     train_data = np.double(train_data) / 255.0
@@ -148,15 +151,16 @@ def nnObjFunction(params, *args):
     training_label = np.array(training_label)
     number_of_samples = training_label.shape[0]
     index = np.arange(number_of_samples, dtype="int")
-
     one_of_k_label = np.zeros((number_of_samples, 10))
     one_of_k_label[index, training_label.astype(int)] = 1
     training_label = one_of_k_label
 
+    #Feedforward propogation starts here
     # Adding bias for input layer x
     number_of_samples = training_data.shape[0]
     training_data = np.column_stack(
-        (training_data, np.ones(number_of_samples)))
+        (training_data, np.ones(number_of_samples))
+        )
 
     # Compute intermediate layer
     # z=w1.T^x
@@ -164,35 +168,46 @@ def nnObjFunction(params, *args):
 
     # Adding bias for intermediate layer z
     number_of_samples = z.shape[0]
-    z = np.column_stack((z, np.ones(number_of_samples)))
+    z = np.column_stack(
+        (z, np.ones(number_of_samples))
+        )
 
     # Compute output layer
     # o=w2.T^z
     o = sigmoid(np.dot(z, w2.T))
+    #Feedforward propogation ends here
 
-    error_output_layer = (training_label - o) * (1 - o) * o
+    #Backpropogation starts here
+    error_output_layer = (training_label - o) * (1 - o) * o #equation (9)
 
-    grad_w2 = np.dot(error_output_layer.T, z)
+    grad_w2 = np.dot((-1 * error_output_layer).T, z) #equation (8)
+
     grad_w1 = np.dot(
-        (-1 * (1 - z) * z * (np.dot(error_output_layer, w2))).T, training_data)
+        (-1 * (1 - z) * z * (
+            np.dot(error_output_layer, w2)
+            )
+        ).T, training_data
+        )  #equation (12)
+
+    grad_w1 = np.delete(grad_w1, n_hidden,0)
 
     # Make sure you reshape the gradient matrices to a 1D array. for instance if your gradient matrices are grad_w1 and grad_w2
     # you would use code similar to the one below to create a flat array
     #obj_grad = np.concatenate((grad_w1.flatten(), grad_w2.flatten()),0)
     obj_grad = np.array([])
     obj_grad = np.concatenate((grad_w1.flatten(), grad_w2.flatten()), 0)
-    obj_grad = obj_grad / number_of_samples
+    obj_grad = obj_grad / training_data.shape[0]
+    #Backpropogation ends here
 
-    # obj_val
+    #Regularization starts here
     obj_val = np.sum(
-        ((training_label - o) * (training_label - o)) / 2) / number_of_samples
+        ((training_label - o) * (training_label - o)) / 2) / training_data.shape[0] #equation (6)
+    obj_val_reg = (lambdaval / (2 * training_data.shape[0])) * \
+        (np.sum(np.square(w1)) + np.sum(np.square(w2)))  #equation (15)
+    obj_val = obj_val + obj_val_reg #equation (15)
+    #Regularization ends here
 
-    # regularization
 
-    obj_val_reg = (lambdaval / (2 * number_of_samples)) * \
-        (np.sum(np.square(w1)) + np.sum(np.square(w2)))
-
-    obj_val = obj_val + obj_val_reg
 
     return (obj_val, obj_grad)
 
@@ -230,7 +245,6 @@ def nnPredict(w1, w2, data):
     # o=w2.T^z
     o = sigmoid(np.dot(z, w2.T))
 
-    # The value of lth unit in the output layer represents the probability of a certain hand-written image belongs to digit l.
     # Find the unit with max probability
 
     labels = np.argmax(o, axis=1)
@@ -241,15 +255,10 @@ def nnPredict(w1, w2, data):
 
 """**************Neural Network Script Starts here********************************"""
 
+start = time.clock()
+print ("running...")
+
 train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
-print (train_data.shape)
-print (train_label.shape)
-print (validation_data.shape)
-print (validation_label.shape)
-print (test_data.shape)
-print (test_label.shape)
-
-
 
 #  Train Neural Network
 
@@ -271,7 +280,7 @@ initialWeights = np.concatenate(
     (initial_w1.flatten(), initial_w2.flatten()), 0)
 
 # set the regularization hyper-parameter
-lambdaval = 0
+lambdaval = 0.4
 
 
 args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
@@ -279,8 +288,9 @@ args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
 # Train Neural Network using fmin_cg or minimize from scipy,optimize
 # module. Check documentation for a working example
 
-opts = {'maxiter': 50}    # Preferred value.
+opts = {'maxiter': 50, 'disp': True}    # Preferred value.
 
+print ("minimizing error...")
 nn_params = minimize(nnObjFunction, initialWeights, jac=True,
                      args=args, method='CG', options=opts)
 
@@ -296,10 +306,13 @@ w2 = nn_params.x[(n_hidden * (n_input + 1))                 :].reshape((n_class,
 
 # Test the computed parameters
 
+print ("predicting...")
 predicted_label = nnPredict(w1, w2, train_data)
 
 # find the accuracy on Training Dataset
 
+print('\n Lambda '+str(lambdaval))
+print('\n Number of hidden units '+str(n_hidden))
 print('\n Training set Accuracy:' +
       str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
 
@@ -315,5 +328,9 @@ predicted_label = nnPredict(w1, w2, test_data)
 
 # find the accuracy on Validation Dataset
 
-print('\n Test set Accuracy:' + +
-      str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+print('\n Test set Accuracy:' +
+    str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+
+
+print ("done...")
+print (str(time.clock() - start) + "seconds elapsed...")
