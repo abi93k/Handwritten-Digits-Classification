@@ -3,6 +3,7 @@ from scipy.optimize import minimize
 from scipy.io import loadmat
 from math import sqrt
 import time
+import pickle
 
 def initializeWeights(n_in, n_out):
     """
@@ -266,7 +267,7 @@ train_data, train_label, validation_data, validation_label, test_data, test_labe
 n_input = train_data.shape[1]
 
 # set the number of nodes in hidden unit (not including bias unit)
-n_hidden = 50
+n_hidden = 20
 
 # set the number of nodes in output unit
 n_class = 10
@@ -280,7 +281,7 @@ initialWeights = np.concatenate(
     (initial_w1.flatten(), initial_w2.flatten()), 0)
 
 # set the regularization hyper-parameter
-lambdaval = 0.4
+lambdaval = 0.1
 
 
 args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
@@ -326,7 +327,7 @@ print('\n Validation set Accuracy:' + str(100 *
 
 predicted_label = nnPredict(w1, w2, test_data)
 
-# find the accuracy on Validation Dataset
+# find the accuracy on Testing Dataset
 
 print('\n Test set Accuracy:' +
     str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
@@ -334,3 +335,4 @@ print('\n Test set Accuracy:' +
 
 print ("done...")
 print (str(time.clock() - start) + "seconds elapsed...")
+pickle.dump((n_hidden,w1,w2,lambdaval),open('params.pickle','wb'))
