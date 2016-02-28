@@ -1,0 +1,20 @@
+running...
+minimizing error...
+Warning: Maximum number of iterations has been exceeded.
+         Current function value: 0.248544
+         Iterations: 50
+         Function evaluations: 164
+         Gradient evaluations: 164
+predicting...
+
+ Lambda 0.5
+
+ Number of hidden units 4
+
+ Training set Accuracy:62.086%
+
+ Validation set Accuracy:61.9%
+
+ Test set Accuracy:61.48%
+done...
+170.02seconds elapsed...

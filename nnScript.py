@@ -3,6 +3,7 @@ from scipy.optimize import minimize
 from scipy.io import loadmat
 from math import sqrt
 import time
+import sys
 
 def initializeWeights(n_in, n_out):
     """
@@ -256,7 +257,13 @@ def nnPredict(w1, w2, data):
 """**************Neural Network Script Starts here********************************"""
 
 start = time.clock()
+if(len(sys.argv) != 3):
+    print ("usage: python nnScript.py <number_of_hidden_units> <lambda>")
+    print ("exiting...")
+    exit()
 print ("running...")
+
+
 
 train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
 
@@ -266,7 +273,7 @@ train_data, train_label, validation_data, validation_label, test_data, test_labe
 n_input = train_data.shape[1]
 
 # set the number of nodes in hidden unit (not including bias unit)
-n_hidden = 50
+n_hidden = int(sys.argv[1])
 
 # set the number of nodes in output unit
 n_class = 10
@@ -280,10 +287,12 @@ initialWeights = np.concatenate(
     (initial_w1.flatten(), initial_w2.flatten()), 0)
 
 # set the regularization hyper-parameter
-lambdaval = 0.4
+lambdaval = float(sys.argv[2])
 
 
 args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
+
+f = open("minimal_results/result_"+str(n_hidden)+"_"+str(lambdaval)+str(".log"),'w+')
 
 # Train Neural Network using fmin_cg or minimize from scipy,optimize
 # module. Check documentation for a working example
@@ -313,24 +322,25 @@ predicted_label = nnPredict(w1, w2, train_data)
 
 print('\n Lambda '+str(lambdaval))
 print('\n Number of hidden units '+str(n_hidden))
+tsa = str(100 * np.mean((predicted_label == train_label).astype(float)))
 print('\n Training set Accuracy:' +
-      str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
+      tsa + '%')
 
 predicted_label = nnPredict(w1, w2, validation_data)
 
 # find the accuracy on Validation Dataset
-
-print('\n Validation set Accuracy:' + str(100 *
-                                          np.mean((predicted_label == validation_label).astype(float))) + '%')
+vsa = str(100 * np.mean((predicted_label == validation_label).astype(float)))
+print('\n Validation set Accuracy:' + vsa + '%')
 
 
 predicted_label = nnPredict(w1, w2, test_data)
 
 # find the accuracy on Validation Dataset
-
-print('\n Test set Accuracy:' +
-    str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
-
+ttsa = str(100 * np.mean((predicted_label == test_label).astype(float)))
+print('\n Test set Accuracy:' + ttsa + '%')
 
 print ("done...")
-print (str(time.clock() - start) + "seconds elapsed...")
+time_taken = str(time.clock() - start)
+print ( time_taken + "seconds elapsed...")
+f.write(str(n_hidden) + "," + str(lambdaval) + "," + tsa + "," + vsa + "," + ttsa + "," + time_taken)
+f.close()
